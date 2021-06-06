@@ -8,6 +8,7 @@
     "electron"
   ],
   "main": "./dist/index.js",
+  "types": "./types.d.ts",
   "repository": "https://github.com/vue-electron/vuex-electron",
   "homepage": "https://github.com/vue-electron/vuex-electron",
   "bugs": "https://github.com/vue-electron/vuex-electron/issues",
