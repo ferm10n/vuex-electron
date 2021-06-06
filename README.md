@@ -2,6 +2,15 @@
   <img width="750" src="https://user-images.githubusercontent.com/678665/45566726-404d9e80-b860-11e8-94b6-527dfcc3b3b3.png">
 </p>
 
+---
+
+🔥 **NOTE!** This project is forked from the unmaintained [vue-electron/vuex-electron](https://github.com/vue-electron/vuex-electron). I forked this and changed the namespace because I see a good possibility of having my team use it and becoming a maintainer for it. If it gets traction and I get time approved to regularly work on it I might try become a maintainer of the original. Here's the changes:
+- fix compilation error while installing dependencies
+- add typedefs
+- ?
+
+---
+
 # Vuex Electron
 
 [![Travis](https://img.shields.io/travis/com/vue-electron/vuex-electron.svg?style=for-the-badge&longCache=true)](https://travis-ci.com/vue-electron/vuex-electron)
