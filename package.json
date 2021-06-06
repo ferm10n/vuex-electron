@@ -1,6 +1,6 @@
 {
   "name": "vuex-electron",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Vuex Electron",
   "keywords": [
     "vue",
@@ -43,7 +43,7 @@
     "babel-jest": "^23.6.0",
     "babel-plugin-add-module-exports": "^0.2.1",
     "babel-preset-minify": "^0.4.3",
-    "bundlesize": "^0.17.0",
+    "bundlesize": "^0.18.1",
     "electron": "^2.0.8",
     "eslint": "^5.5.0",
     "eslint-config-prettier": "^3.0.1",
