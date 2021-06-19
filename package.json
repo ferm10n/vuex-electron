@@ -16,9 +16,7 @@
   "private": false,
   "scripts": {
     "prebuild": "rimraf dist && mkdirp dist",
-    "build": "babel src -d dist",
-    "build:dev": "yarn build --env-name production",
-    "build:prod": "yarn build --env-name production",
+    "build": "tsc",
     "watch": "yarn build --watch",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
@@ -70,8 +68,5 @@
     "types.d.ts",
     "CHANGELOG.md",
     "LICENSE"
-  ],
-  "browserslist": [
-    "node 10"
   ]
 }
