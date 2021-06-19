@@ -29,41 +29,41 @@ Installation of the Vuex Electron easy as 1-2-3.
 
 1. Install package with using of [yarn](https://github.com/yarnpkg/yarn) or [npm](https://github.com/npm/cli):
 
-    ```
-    yarn install vuex-electron
-    ```
+   ```
+   yarn install vuex-electron
+   ```
 
-    or
+   or
 
-    ```
-    npm install vuex-electron
-    ```
+   ```
+   npm install vuex-electron
+   ```
 
 2. Include plugins in your Vuex store::
 
-    ```javascript
-    import Vue from "vue"
-    import Vuex from "vuex"
+   ```javascript
+   import Vue from "vue"
+   import Vuex from "vuex"
 
-    import { createPersistedState, createSharedMutations } from "vuex-electron"
+   import { createPersistedState, createSharedMutations } from "vuex-electron"
 
-    Vue.use(Vuex)
+   Vue.use(Vuex)
 
-    export default new Vuex.Store({
-      // ...
-      plugins: [
-        createPersistedState(),
-        createSharedMutations()
-      ],
-      // ...
-    })
-    ```
+   export default new Vuex.Store({
+     // ...
+     plugins: [
+       createPersistedState(),
+       createSharedMutations()
+     ],
+     // ...
+   })
+   ```
 
 3. In case if you enabled `createSharedMutations()` plugin you need to create an instance of store in the main process. To do it just add this line into your main process (for example `src/main.js`):
 
-    ```javascript
-    import './path/to/your/store'
-    ```
+   ```javascript
+   import './path/to/your/store'
+   ```
 
 4. Well done you did it! The last step is to add the star to this repo :smile:
 
