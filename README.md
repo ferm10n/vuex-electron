@@ -5,9 +5,12 @@
 ---
 
 🔥 **NOTE!** This project is forked from the unmaintained [vue-electron/vuex-electron](https://github.com/vue-electron/vuex-electron). I forked this and changed the namespace because I see a good possibility of having my team use it and becoming a maintainer for it. If it gets traction and I get time approved to regularly work on it I might try become a maintainer of the original. Here's the changes:
+
 - fix compilation error while installing dependencies
-- add typedefs
-- ?
+- rewrite in typescript, added type declaration files too
+- WIP allow use without node-integration, by only requiring electron/electron-store when ipcRenderer/ipcMain is not provided
+- update to work with electron 7
+- support return values from the main process to the renderer when actions are dispatched
 
 ---
 
@@ -38,41 +41,38 @@ Installation of the Vuex Electron easy as 1-2-3.
 
 1. Install package with using of [yarn](https://github.com/yarnpkg/yarn) or [npm](https://github.com/npm/cli):
 
-    ```
-    yarn install vuex-electron
-    ```
+   ```
+   yarn install vuex-electron
+   ```
 
-    or
+   or
 
-    ```
-    npm install vuex-electron
-    ```
+   ```
+   npm install vuex-electron
+   ```
 
 2. Include plugins in your Vuex store::
 
-    ```javascript
-    import Vue from "vue"
-    import Vuex from "vuex"
+   ```javascript
+   import Vue from "vue"
+   import Vuex from "vuex"
 
-    import { createPersistedState, createSharedMutations } from "vuex-electron"
+   import { createPersistedState, createSharedMutations } from "vuex-electron"
 
-    Vue.use(Vuex)
+   Vue.use(Vuex)
 
-    export default new Vuex.Store({
-      // ...
-      plugins: [
-        createPersistedState(),
-        createSharedMutations()
-      ],
-      // ...
-    })
-    ```
+   export default new Vuex.Store({
+     // ...
+     plugins: [createPersistedState(), createSharedMutations()],
+     // ...
+   })
+   ```
 
 3. In case if you enabled `createSharedMutations()` plugin you need to create an instance of store in the main process. To do it just add this line into your main process (for example `src/main.js`):
 
-    ```javascript
-    import './path/to/your/store'
-    ```
+   ```javascript
+   import "./path/to/your/store"
+   ```
 
 4. Well done you did it! The last step is to add the star to this repo :smile:
 
@@ -104,7 +104,7 @@ createPersistedState({
 
   blacklist: (mutation) => {
     return true
-  }
+  },
 })
 ```
 

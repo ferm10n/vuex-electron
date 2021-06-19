@@ -1,35 +1,54 @@
-import { ipcMain, ipcRenderer } from "electron"
+import type { IpcMain, IpcRenderer } from "electron"
+import type { Store } from "vuex"
 
 const IPC_EVENT_CONNECT = "vuex-mutations-connect"
 const IPC_EVENT_NOTIFY_MAIN = "vuex-mutations-notify-main"
 const IPC_EVENT_NOTIFY_RENDERERS = "vuex-mutations-notify-renderers"
 
+/**
+ * @type {import('../types').SharedMutations}
+ */
 class SharedMutations {
-  constructor(options, store) {
+  options: {
+    type: "renderer" | "main"
+    ipcMain: IpcMain
+    ipcRenderer: IpcRenderer
+  }
+
+  store: Store<any>
+
+  constructor(options, store: Store<any>) {
     this.options = options
+    if (!this.options.type) {
+      this.options.type = process.type === "renderer" ? "renderer" : "main"
+    }
+
+    if (
+      (this.options.type === "renderer" && !this.options.ipcRenderer) ||
+      (this.options.type === "main" && !this.options.ipcMain)
+    ) {
+      const { ipcMain, ipcRenderer } = require("electron")
+      if (!this.options.ipcMain) this.options.ipcMain = ipcMain
+      if (!this.options.ipcRenderer) this.options.ipcRenderer = ipcRenderer
+    }
+
     this.store = store
   }
 
-  loadOptions() {
-    if (!this.options.type) this.options.type = process.type === "renderer" ? "renderer" : "main"
-    if (!this.options.ipcMain) this.options.ipcMain = ipcMain
-    if (!this.options.ipcRenderer) this.options.ipcRenderer = ipcRenderer
-  }
-
-  connect(payload) {
-    this.options.ipcRenderer.send(IPC_EVENT_CONNECT, payload)
+  connect() {
+    this.options.ipcRenderer.send(IPC_EVENT_CONNECT)
   }
 
   onConnect(handler) {
     this.options.ipcMain.on(IPC_EVENT_CONNECT, handler)
   }
 
-  notifyMain(payload) {
-    this.options.ipcRenderer.send(IPC_EVENT_NOTIFY_MAIN, payload)
+  async notifyMain(payload) {
+    return await this.options.ipcRenderer.invoke(IPC_EVENT_NOTIFY_MAIN, payload)
   }
 
   onNotifyMain(handler) {
-    this.options.ipcMain.on(IPC_EVENT_NOTIFY_MAIN, handler)
+    this.options.ipcMain.handle(IPC_EVENT_NOTIFY_MAIN, handler)
   }
 
   notifyRenderers(connections, payload) {
@@ -47,8 +66,8 @@ class SharedMutations {
     this.connect()
 
     // Save original Vuex methods
-    this.store.originalCommit = this.store.commit
-    this.store.originalDispatch = this.store.dispatch
+    const originalCommit = this.store.commit
+    // const originalDispatch = this.store.dispatch
 
     // Don't use commit in renderer outside of actions
     this.store.commit = () => {
@@ -57,12 +76,12 @@ class SharedMutations {
 
     // Forward dispatch to main process
     this.store.dispatch = (type, payload) => {
-      this.notifyMain({ type, payload })
+      return this.notifyMain({ type, payload })
     }
 
     // Subscribe on changes from main process and apply them
     this.onNotifyRenderers((event, { type, payload }) => {
-      this.store.originalCommit(type, payload)
+      originalCommit.call(this.store, type, payload)
     })
   }
 
@@ -83,8 +102,8 @@ class SharedMutations {
     })
 
     // Subscribe on changes from renderer processes
-    this.onNotifyMain((event, { type, payload }) => {
-      this.store.dispatch(type, payload)
+    this.onNotifyMain(async (event, { type, payload }) => {
+      return await this.store.dispatch(type, payload)
     })
 
     // Subscribe on changes from Vuex store
@@ -110,9 +129,9 @@ class SharedMutations {
   }
 }
 
-export default (options = {}) => (store) => {
-  const sharedMutations = new SharedMutations(options, store)
+export default (options: Partial<SharedMutations["options"]> = {}) =>
+  (store) => {
+    const sharedMutations = new SharedMutations(options, store)
 
-  sharedMutations.loadOptions()
-  sharedMutations.activatePlugin()
-}
+    sharedMutations.activatePlugin()
+  }

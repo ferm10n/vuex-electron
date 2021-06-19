@@ -2,7 +2,7 @@
 
 ### 1.0.3
 
-- Move `electron`, `vue`, and `vuex` to `devDependencies` 
+- Move `electron`, `vue`, and `vuex` to `devDependencies`
 
 ### 1.0.2
 

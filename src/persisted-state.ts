@@ -1,11 +1,23 @@
 import merge from "deepmerge"
-import Store from "electron-store"
+import type { Mutation, MutationPayload, Store as VuexStore } from "vuex"
+import type Store from "electron-store"
 
 const STORAGE_NAME = "vuex"
 const STORAGE_KEY = "state"
 const STORAGE_TEST_KEY = "test"
 
 class PersistedState {
+  whitelist: (mutation: MutationPayload) => boolean
+  blacklist: (mutation: MutationPayload) => boolean
+  options: {
+    whitelist?: PersistedState["whitelist"] | string[]
+    blacklist?: PersistedState["blacklist"] | string[]
+    storage?: Store
+    storageKey?: string
+    storageName?: string
+  }
+  store: VuexStore<any>
+
   constructor(options, store) {
     this.options = options
     this.store = store
@@ -20,6 +32,7 @@ class PersistedState {
   }
 
   createStorage() {
+    const Store = require("electron-store")
     return new Store({ name: this.options.storageName || STORAGE_NAME })
   }
 
@@ -55,6 +68,7 @@ class PersistedState {
       this.options.storage.get(STORAGE_TEST_KEY)
       this.options.storage.delete(STORAGE_TEST_KEY)
     } catch (error) {
+      console.error(error)
       throw new Error("[Vuex Electron] Storage is not valid. Please, read the docs.")
     }
   }
@@ -64,7 +78,7 @@ class PersistedState {
     const clone = (value, options) => merge(emptyTarget(value), value, options)
     const destination = target.slice()
 
-    source.forEach(function(e, i) {
+    source.forEach(function (e, i) {
       if (typeof destination[i] === "undefined") {
         const cloneRequested = options.clone !== false
         const shouldClone = cloneRequested && options.isMergeableObject(e)
@@ -80,7 +94,7 @@ class PersistedState {
   }
 
   loadInitialState() {
-    const state = this.getState(this.options.storage, this.options.storageKey)
+    const state = this.getState()
 
     if (state) {
       const mergedState = merge(this.store.state, state, { arrayMerge: this.combineMerge })
@@ -98,11 +112,12 @@ class PersistedState {
   }
 }
 
-export default (options = {}) => (store) => {
-  const persistedState = new PersistedState(options, store)
+export default (options = {}) =>
+  (store) => {
+    const persistedState = new PersistedState(options, store)
 
-  persistedState.loadOptions()
-  persistedState.checkStorage()
-  persistedState.loadInitialState()
-  persistedState.subscribeOnChanges()
-}
+    persistedState.loadOptions()
+    persistedState.checkStorage()
+    persistedState.loadInitialState()
+    persistedState.subscribeOnChanges()
+  }
