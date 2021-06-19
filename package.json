@@ -8,7 +8,6 @@
     "electron"
   ],
   "main": "./dist/index.js",
-  "types": "./types.d.ts",
   "repository": "https://github.com/vue-electron/vuex-electron",
   "homepage": "https://github.com/vue-electron/vuex-electron",
   "bugs": "https://github.com/vue-electron/vuex-electron/issues",
@@ -54,8 +53,9 @@
     "eslint-plugin-prettier": "^2.6.2",
     "jest": "^23.6.0",
     "mkdirp": "^1.0.4",
-    "prettier": "^1.14.2",
+    "prettier": "^2",
     "rimraf": "^3.0.2",
+    "typescript": "^4.3.4",
     "vue": "^2.5.17",
     "vuex": "^3.0.1"
   },
@@ -70,5 +70,8 @@
     "types.d.ts",
     "CHANGELOG.md",
     "LICENSE"
+  ],
+  "browserslist": [
+    "node 10"
   ]
 }

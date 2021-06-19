@@ -51,10 +51,7 @@ Installation of the Vuex Electron easy as 1-2-3.
 
    export default new Vuex.Store({
      // ...
-     plugins: [
-       createPersistedState(),
-       createSharedMutations()
-     ],
+     plugins: [createPersistedState(), createSharedMutations()],
      // ...
    })
    ```
@@ -62,7 +59,7 @@ Installation of the Vuex Electron easy as 1-2-3.
 3. In case if you enabled `createSharedMutations()` plugin you need to create an instance of store in the main process. To do it just add this line into your main process (for example `src/main.js`):
 
    ```javascript
-   import './path/to/your/store'
+   import "./path/to/your/store"
    ```
 
 4. Well done you did it! The last step is to add the star to this repo :smile:
@@ -95,7 +92,7 @@ createPersistedState({
 
   blacklist: (mutation) => {
     return true
-  }
+  },
 })
 ```
 
