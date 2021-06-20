@@ -1,24 +1,28 @@
 import merge from "deepmerge"
-import type { Mutation, MutationPayload, Store as VuexStore } from "vuex"
+import type { Store as VuexStore } from "vuex"
 import type Store from "electron-store"
+import pick from "lodash.pick"
+import omit from "lodash.omit"
 
 const STORAGE_NAME = "vuex"
 const STORAGE_KEY = "state"
 const STORAGE_TEST_KEY = "test"
 
 class PersistedState {
-  whitelist: (mutation: MutationPayload) => boolean
-  blacklist: (mutation: MutationPayload) => boolean
+  whitelist: string[]
+  blacklist: string[]
   options: {
-    whitelist?: PersistedState["whitelist"] | string[]
-    blacklist?: PersistedState["blacklist"] | string[]
+    /** property paths to filter properties using lodash.pick */
+    whitelist?: PersistedState["whitelist"]
+    /** property paths to filter properties using lodash.omit */
+    blacklist?: PersistedState["blacklist"]
     storage?: Store
     storageKey?: string
     storageName?: string
   }
   store: VuexStore<any>
 
-  constructor(options, store) {
+  constructor(options: PersistedState["options"], store: VuexStore<any>) {
     this.options = options
     this.store = store
   }
@@ -27,8 +31,8 @@ class PersistedState {
     if (!this.options.storage) this.options.storage = this.createStorage()
     if (!this.options.storageKey) this.options.storageKey = STORAGE_KEY
 
-    this.whitelist = this.loadFilter(this.options.whitelist, "whitelist")
-    this.blacklist = this.loadFilter(this.options.blacklist, "blacklist")
+    this.whitelist = this.options.whitelist || []
+    this.blacklist = this.options.blacklist || []
   }
 
   createStorage() {
@@ -42,24 +46,6 @@ class PersistedState {
 
   setState(state) {
     this.options.storage.set(this.options.storageKey, state)
-  }
-
-  loadFilter(filter, name) {
-    if (!filter) {
-      return null
-    } else if (filter instanceof Array) {
-      return this.filterInArray(filter)
-    } else if (typeof filter === "function") {
-      return filter
-    } else {
-      throw new Error(`[Vuex Electron] Filter "${name}" should be Array or Function. Please, read the docs.`)
-    }
-  }
-
-  filterInArray(list) {
-    return (mutation) => {
-      return list.includes(mutation.type)
-    }
   }
 
   checkStorage() {
@@ -104,15 +90,16 @@ class PersistedState {
 
   subscribeOnChanges() {
     this.store.subscribe((mutation, state) => {
-      if (this.blacklist && this.blacklist(mutation)) return
-      if (this.whitelist && !this.whitelist(mutation)) return
+      let filteredState = state
+      if (this.whitelist.length > 0) filteredState = pick(state, this.whitelist)
+      if (this.blacklist.length > 0) filteredState = omit(state, this.blacklist)
 
-      this.setState(state)
+      this.setState(filteredState)
     })
   }
 }
 
-export default (options = {}) =>
+export default (options: PersistedState["options"] = {}) =>
   (store) => {
     const persistedState = new PersistedState(options, store)
 
