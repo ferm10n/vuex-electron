@@ -2,7 +2,10 @@ import type { IpcMain, IpcRenderer } from "electron"
 import type { Store } from "vuex"
 
 const IPC_EVENT_CONNECT = "vuex-mutations-connect"
-const IPC_EVENT_NOTIFY_MAIN = "vuex-mutations-notify-main"
+/** channel for triggering an action in main, from renderer */
+const IPC_EVENT_NOTIFY_MAIN_ACTION = "vuex-mutations-notify-main-action"
+/** channel for triggering a mutation in main, from renderer */
+const IPC_EVENT_NOTIFY_MAIN_MUTATION = "vuex-mutations-notify-main-commit"
 const IPC_EVENT_NOTIFY_RENDERERS = "vuex-mutations-notify-renderers"
 
 /**
@@ -43,12 +46,8 @@ class SharedMutations {
     this.options.ipcMain.on(IPC_EVENT_CONNECT, handler)
   }
 
-  async notifyMain(payload) {
-    return await this.options.ipcRenderer.invoke(IPC_EVENT_NOTIFY_MAIN, payload)
-  }
-
-  onNotifyMain(handler) {
-    this.options.ipcMain.handle(IPC_EVENT_NOTIFY_MAIN, handler)
+  notifyMain(payload): Promise<any> {
+    return this.options.ipcRenderer.invoke(IPC_EVENT_NOTIFY_MAIN_ACTION, payload)
   }
 
   notifyRenderers(connections, payload) {
@@ -69,9 +68,11 @@ class SharedMutations {
     const originalCommit = this.store.commit
     // const originalDispatch = this.store.dispatch
 
-    // Don't use commit in renderer outside of actions
-    this.store.commit = () => {
-      throw new Error(`[Vuex Electron] Please, don't use direct commit's, use dispatch instead of this.`)
+    this.store.commit = (...args) => {
+      const errorMsg = this.options.ipcRenderer.sendSync(IPC_EVENT_NOTIFY_MAIN_MUTATION, ...args)
+      if (errorMsg) {
+        throw Error(`[Vuex Electron] Error from main process while applying commit: ${errorMsg}`)
+      }
     }
 
     // Forward dispatch to main process
@@ -101,9 +102,20 @@ class SharedMutations {
       })
     })
 
-    // Subscribe on changes from renderer processes
-    this.onNotifyMain(async (event, { type, payload }) => {
-      return await this.store.dispatch(type, payload)
+    // Subscribe to action dispatch from renderer processes
+    this.options.ipcMain.handle(IPC_EVENT_NOTIFY_MAIN_ACTION, (event, { type, payload }) => {
+      return this.store.dispatch(type, payload)
+    })
+
+    // Subscribe to mutations requested from renderer processes
+    this.options.ipcMain.on(IPC_EVENT_NOTIFY_MAIN_MUTATION, (event, ...args: Parameters<Store<any>["commit"]>) => {
+      let errorMsg = ""
+      try {
+        this.store.commit(...args)
+      } catch (err) {
+        errorMsg = err.message
+      }
+      event.returnValue = errorMsg
     })
 
     // Subscribe on changes from Vuex store
