@@ -68,7 +68,7 @@ Installation of the Vuex Electron easy as 1-2-3.
 
 ## IMPORTANT
 
-In renderer process to call actions you need to use `dispatch` or `mapActions`. Don't use `commit` because actions fired via `commit` will not be shared between processes.
+In renderer process to call actions you need to use `dispatch` or `mapActions`. Using `commit` is possible, but synchronous using `ipcRenderer.sendSync`. This is to ensure state is synchronized with all processes.
 
 ### Options
 
@@ -76,23 +76,11 @@ Available options for `createPersistedState()`
 
 ```javascript
 createPersistedState({
-  whitelist: ["whitelistedMutation", "anotherWhitelistedMutation"],
+  whitelist: ["storeStateKey", "anotherStoreStateKey", "storeStateKey.nestedKey"],
 
   // or
 
-  whitelist: (mutation) => {
-    return true
-  },
-
-  // or
-
-  blacklist: ["ignoredMutation", "anotherIgnoredMutation"],
-
-  // or
-
-  blacklist: (mutation) => {
-    return true
-  },
+  blacklist: ["unwantedKey"],
 })
 ```
 
